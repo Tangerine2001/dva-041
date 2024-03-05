@@ -1,0 +1,7 @@
+# Data files
+# You can download these after cloning the repo
+data
+
+# IDE files
+.idea
+.vscode

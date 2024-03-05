@@ -1,0 +1,176 @@
+{
+    "MSFT": {
+        "name": "Microsoft Corporation",
+        "sector": "Technology",
+        "industry": "Computer Software: Prepackaged Software",
+        "exchange": "NASDAQ"
+    },
+    "AAPL": {
+        "name": "Apple Inc.",
+        "sector": "Technology",
+        "industry": "Computer Manufacturing",
+        "exchange": "NASDAQ"
+    },
+    "GOOGL": {
+        "name": "Alphabet Inc.",
+        "sector": "Technology",
+        "industry": "Computer Software: Programming, Data Processing",
+        "exchange": "NASDAQ"
+    },
+    "AMZN": {
+        "name": "Amazon.com Inc.",
+        "sector": "Consumer Services",
+        "industry": "Catalog/Specialty Distribution",
+        "exchange": "NASDAQ"
+    },
+    "META": {
+        "name": "Meta Platforms Inc.",
+        "sector": "Technology",
+        "industry": "Computer Software: Programming, Data Processing",
+        "exchange": "NASDAQ"
+    },
+    "TSLA": {
+        "name": "Tesla Inc.",
+        "sector": "Consumer Discretionary",
+        "industry": "Auto Manufacturing",
+        "exchange": "NASDAQ"
+    },
+    "NVDA": {
+        "name": "NVIDIA Corporation",
+        "sector": "Technology",
+        "industry": "Semiconductors",
+        "exchange": "NASDAQ"
+    },
+    "JPM": {
+        "name": "JPMorgan Chase & Co.",
+        "sector": "Finance",
+        "industry": "Major Banks",
+        "exchange": "NYSE"
+    },
+    "BAC": {
+        "name": "Bank of America Corp.",
+        "sector": "Finance",
+        "industry": "Major Banks",
+        "exchange": "NYSE"
+    },
+    "WFC": {
+        "name": "Wells Fargo & Co.",
+        "sector": "Finance",
+        "industry": "Major Banks",
+        "exchange": "NYSE"
+    },
+    "C": {
+        "name": "Citigroup Inc.",
+        "sector": "Finance",
+        "industry": "Major Banks",
+        "exchange": "NYSE"
+    },
+    "GS": {
+        "name": "Goldman Sachs Group Inc.",
+        "sector": "Finance",
+        "industry": "Investment Banks/Brokers/Service",
+        "exchange": "NYSE"
+    },
+    "MS": {
+        "name": "Morgan Stanley",
+        "sector": "Finance",
+        "industry": "Investment Banks/Brokers/Service",
+        "exchange": "NYSE"
+    },
+    "NFLX": {
+        "name": "Netflix Inc.",
+        "sector": "Consumer Services",
+        "industry": "Consumer Electronics/Video Chains",
+        "exchange": "NASDAQ"
+    },
+    "DIS": {
+        "name": "The Walt Disney Company",
+        "sector": "Consumer Services",
+        "industry": "Television Services",
+        "exchange": "NYSE"
+    },
+    "CMCSA": {
+        "name": "Comcast Corporation",
+        "sector": "Consumer Services",
+        "industry": "Television Services",
+        "exchange": "NASDAQ"
+    },
+    "T": {
+        "name": "AT&T Inc.",
+        "sector": "Public Utilities",
+        "industry": "Telecommunications Equipment",
+        "exchange": "NYSE"
+    },
+    "VZ": {
+        "name": "Verizon Communications Inc.",
+        "sector": "Public Utilities",
+        "industry": "Telecommunications Equipment",
+        "exchange": "NYSE"
+    },
+    "TMUS": {
+        "name": "T-Mobile US Inc.",
+        "sector": "Public Utilities",
+        "industry": "Telecommunications Equipment",
+        "exchange": "NASDAQ"
+    },
+    "INTC": {
+        "name": "Intel Corporation",
+        "sector": "Technology",
+        "industry": "Semiconductors",
+        "exchange": "NASDAQ"
+    },
+    "CSCO": {
+        "name": "Cisco Systems Inc.",
+        "sector": "Technology",
+        "industry": "Computer Communications Equipment",
+        "exchange": "NASDAQ"
+    },
+    "IBM": {
+        "name": "International Business Machines Corporation",
+        "sector": "Technology",
+        "industry": "Computer Manufacturing",
+        "exchange": "NYSE"
+    },
+    "ORCL": {
+        "name": "Oracle Corporation",
+        "sector": "Technology",
+        "industry": "Computer Software: Prepackaged Software",
+        "exchange": "NYSE"
+    },
+    "QCOM": {
+        "name": "QUALCOMM Incorporated",
+        "sector": "Technology",
+        "industry": "Radio And Television Broadcasting And Communications Equipment",
+        "exchange": "NASDAQ"
+    },
+    "ADBE": {
+        "name": "Adobe Inc.",
+        "sector": "Technology",
+        "industry": "Computer Software: Prepackaged Software",
+        "exchange": "NASDAQ"
+    },
+    "PYPL": {
+        "name": "PayPal Holdings Inc.",
+        "sector": "Miscellaneous",
+        "industry": "Business Services",
+        "exchange": "NASDAQ"
+    },
+    "CRM": {
+        "name": "Salesforce.com Inc.",
+        "sector": "Technology",
+        "industry": "Computer Software: Prepackaged Software",
+        "exchange": "NYSE"
+    },
+    "UBER": {
+        "name": "Uber Technologies Inc.",
+        "sector": "Transportation",
+        "industry": "Rental/Leasing Companies",
+        "exchange": "NYSE"
+    },
+    "LYFT": {
+        "name": "Lyft Inc.",
+        "sector": "Transportation",
+        "industry": "Rental/Leasing Companies",
+        "exchange": "NASDAQ"
+    }
+}

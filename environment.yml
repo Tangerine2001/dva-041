@@ -1,0 +1,42 @@
+name: dva-041
+channels:
+  - defaults
+dependencies:
+  - bzip2=1.0.8=h6c40b1e_5
+  - ca-certificates=2023.12.12=hecd8cb5_0
+  - libffi=3.4.4=hecd8cb5_0
+  - ncurses=6.4=hcec6c5f_0
+  - openssl=3.0.13=hca72f7f_0
+  - pip=23.3.1=py311hecd8cb5_0
+  - python=3.11.8=hf27a42d_0
+  - readline=8.2=hca72f7f_0
+  - setuptools=68.2.2=py311hecd8cb5_0
+  - sqlite=3.41.2=h6c40b1e_0
+  - tk=8.6.12=h5d9f67b_0
+  - wheel=0.41.2=py311hecd8cb5_0
+  - xz=5.4.6=h6c40b1e_0
+  - zlib=1.2.13=h4dc903c_0
+  - pip:
+      - appdirs==1.4.4
+      - beautifulsoup4==4.12.3
+      - certifi==2024.2.2
+      - charset-normalizer==3.3.2
+      - frozendict==2.4.0
+      - html5lib==1.1
+      - idna==3.6
+      - lxml==5.1.0
+      - multitasking==0.0.11
+      - numpy==1.26.4
+      - pandas==2.2.1
+      - peewee==3.17.1
+      - python-dateutil==2.9.0.post0
+      - pytz==2024.1
+      - requests==2.31.0
+      - six==1.16.0
+      - soupsieve==2.5
+      - tqdm==4.66.2
+      - tzdata==2024.1
+      - urllib3==2.2.1
+      - webencodings==0.5.1
+      - yfinance==0.2.37
+prefix: /Users/max/anaconda3/envs/dva-041

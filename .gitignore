@@ -5,3 +5,6 @@ data
 # IDE files
 .idea
 .vscode
+
+# MACOS
+.DS_Store

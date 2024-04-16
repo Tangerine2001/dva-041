@@ -11,27 +11,26 @@ class cnn_discriminator(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         self.main = nn.Sequential(
-            nn.Conv1d(self.input_channels, self.input_channels * 2, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(self.input_channels, 15, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(self.input_channels * 2, self.input_channels * 4, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(15, 30, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(self.input_channels * 8, self.input_channels * 16, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(30, 60, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(self.input_channels * 16, self.input_channels * 32, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(60, 120, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(self.input_channels * 32, self.input_channels * 64, kernel_size = 1, stride = self.stride, padding_mode = "reflect"),
+            nn.Conv1d(120, 1, kernel_size = 1, stride = self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Linear(self.input_channels * 64, self.output_channels * 64),
+            nn.Linear(11, self.output_channels * 220, bias = False),
             nn.LeakyReLU(inplace = True),
-            nn.Linear(self.output_channels * 64, self.output_channels * 8),
+            nn.Linear(self.output_channels * 220, self.output_channels * 220, bias = False),
             nn.ReLU(inplace = True),
-            nn.Linear(self.output_channels * 8, self.output_channels),
+            nn.Linear(self.output_channels * 220, self.output_channels * 1),
             nn.Sigmoid()
         )
     
     def forward(self, input):
-        
-        out = self.main(input)
+        out = self.main(input.float())
         return out
     
 
@@ -43,24 +42,28 @@ class lstm_generator(nn.Module):
         self.batch_size = batch_size
         self.hidden_size = hidden_size
         self.output_size = output_size
-        self.main = nn.Sequential(
-            nn.LSTM(self.input_size, self.hidden_size, 2, dropout = .2, bidirectional = True),
-            nn.Tanh(),
-            nn.LSTM(self.hidden_size * 2, self.hidden_size / 2, num_layers = 2, dropout = .2, bidirectional = True),
-            nn.Tanh(),
-            nn.LSTM(self.hidden_size, self.hidden_size / 4, 2, dropout = .2, bidirectional = True),
-            nn.Tanh(),
-            nn.Linear(self.hidden_size / 2, self.output_size * 4),
-            nn.Linear(self.output_size * 4, self.output_size * 2),
-            nn.Linear(self.hidden_size * 2, self.output_size)
-        )
 
-    def init_hidden(self):
-        return (torch.zeros(self.num_layers, self.batch_size, self.hidden_size),
-                torch.zeros(self.num_layers, self.batch_size, self.hidden_size))
+        self.lstm1 = nn.LSTM(self.input_size, self.hidden_size, 2, dropout = .2, bidirectional = False)
+        self.tanh1 = nn.Tanh()
+        self.lstm2 = nn.LSTM(self.hidden_size, self.hidden_size, num_layers = 2, dropout = .2, bidirectional = False)
+        self.tanh2 = nn.Tanh()
+        self.lstm3 = nn.LSTM(self.hidden_size, self.hidden_size, 2, dropout = .2, bidirectional = False)
+        self.tanh3 = nn.Tanh()
+        self.linears = nn.Sequential(
+            nn.Linear(self.hidden_size, 32),
+            nn.Linear(32, 16),
+            nn.Linear(16, self.output_size)
+        )
     
 
     def forward(self, input):
 
-        out = self.main(input)
+        lout1, (h1, c1) = self.lstm1(input.float())
+        tout1 = self.tanh1(lout1)
+        lout2, (h2, c2) = self.lstm2(tout1, (h1, c1))
+        tout2 = self.tanh2(lout2)
+        lout3, (h3, c3) = self.lstm3(tout2, (h2, c2))
+        tout3 = self.tanh3(lout3)
+        out = self.linears(tout3)
+
         return out

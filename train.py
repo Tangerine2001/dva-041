@@ -11,14 +11,19 @@ from augment_data import augment_stockdata
 prediction_period = 20   #num days input for generator
 predict_step = 3
 lr = .0002
-plr = .01
+plr = .001
 beta1 = .5
 workers = 1
 batch_size = 5
+pred_batch_size = 15
+gen_hidden_size = 64
+pred_hidden_size = 80
 device = torch.device("cpu")
 num_gan_epochs = 300
 num_pred_epochs = 150
-num_generated_data = 100
+num_generated_data = 200
+augmented_training = True
+gen_train = False
 
 def get_data(STOCK_NAMES):
     today_date = datetime.datetime.today()
@@ -55,7 +60,6 @@ def train_model(ticker_dataset, ticker):
     for j in range(len(testing_data) - prediction_period):
         x_test.append(testing_data[j : j + prediction_period, :])
     x_train, x_test = np.array(x_train), np.array(x_test)
-    x_train, x_test = x_train[:, np.newaxis, :], x_test[:, np.newaxis, :]
     
     print(x_train.shape, len(x_train))
     print(x_test.shape, len(x_test))
@@ -68,6 +72,11 @@ def train_model(ticker_dataset, ticker):
 
     netD.to(device)
     netG.to(device)
+
+    if not gen_train:
+        num_gan_epochs = 0
+        netD.load_state_dict(torch.load("model_cache\discriminator_" + ticker))
+        netG.load_state_dict(torch.load("model_cache\generator_" + ticker))
     
     criterion = nn.BCELoss()
     
@@ -88,8 +97,7 @@ def train_model(ticker_dataset, ticker):
             #Update discriminator
 
             #first, train on all real batch
-            dataAlt = data.permute(1, 0, 2, 3)
-            real_cpu = dataAlt[0].to(device)
+            real_cpu = data.to(device)
             bSize = real_cpu.size(0)
 
             #print(real_cpu.shape)
@@ -109,8 +117,6 @@ def train_model(ticker_dataset, ticker):
             D_x = output.mean().item()
 
             ## Train with all-fake batch
-            # Generate fake last day with G
-            exclude_last = data.permute(1, 0, 3, 2)[0].to(device)[:, :, : -1 * predict_step]
             #print(exclude_last.shape)
             noise = torch.randn((bSize, prediction_period, num_feats), device=device)
             fake = netG(noise)
@@ -160,24 +166,31 @@ def train_model(ticker_dataset, ticker):
     #    lastP = netG(data.permute(1, 0, 3, 2)[0].to(device)[:, :, : -1 * predict_step])
     #    print("Actual : ", last.tolist()[0][3])
     #    print("Predicted : ", lastP.tolist()[0][3])
-    torch.save(netD.state_dict, "\_models\discriminator_" + ticker)
-    torch.save(netG.state_dict, "\_models\generator_" + ticker)
-    netG.eval()
-    aug_data = None
-    for i in range(num_generated_data):
-        new_noise = torch.randn((prediction_period, num_feats), device=device)
-        genData = netG(new_noise)
-        if aug_data == None:
-            aug_data = genData.detach().numpy()
-        else:
-            aug_data = np.concatenate(aug_data, genData.detach().numpy(), axis = 0)
+    if gen_train:
+        torch.save(netD.state_dict(), "model_cache\discriminator_" + ticker)
+        torch.save(netG.state_dict(), "model_cache\generator_" + ticker)
 
-    aug_x_train = np.concatenate(x_train, aug_data[:, np.newaxis, :], axis = 0)
+    if augmented_training:
+        netG.eval()
+        aug_data = None
+        started = False
+        for i in range(num_generated_data):
+            new_noise = torch.randn((prediction_period, num_feats), device=device)
+            genData = netG(new_noise)
+            if not started:
+                aug_data = genData.detach().numpy()[np.newaxis, :]
+                started = True
+            else:
+                aug_data = np.concatenate((aug_data, genData.detach().numpy()[np.newaxis, :]), axis = 0)
+        print(aug_data.shape)
+        aug_x_train = np.concatenate((x_train, aug_data), axis = 0)
+    else:
+        aug_x_train = x_train
 
     aug_dataLoader = torch.utils.data.DataLoader(aug_x_train, batch_size = batch_size, shuffle = True, num_workers = workers)
     
 
-    pred_net = lstm_predictor(prediction_period - predict_step, num_feats, batch_size, 32, predict_step)
+    pred_net = lstm_predictor(prediction_period - predict_step, num_feats, pred_batch_size, 32, predict_step)
     reg_loss = nn.MSELoss()
 
     pred_net.to(device)
@@ -186,10 +199,10 @@ def train_model(ticker_dataset, ticker):
 
     for epoch in range(num_pred_epochs):
         for i, data in enumerate(aug_dataLoader, 0):
-            print(data.shape)
+            #print(data.shape)
             model_input = data[:, : -1 * predict_step, :]
-            actual = data[:, -1 * predict_step:, 3].values
-            predicted = pred_net(model_input)
+            actual = data[:, -1 * predict_step:, 3].float()
+            predicted = pred_net(model_input).float()
             pred_net.zero_grad()
             errP = reg_loss(predicted, actual)
             errP.backward()
@@ -200,10 +213,14 @@ def train_model(ticker_dataset, ticker):
                             errP.item()))
     pred_net.eval()            
     for i, data in enumerate(dataloaderTest, 0):
+        #print(data.shape)
         test_input = data[:, : -1 * predict_step, :]
-        actual = data[:, -1 * predict_step:, 3].values
-        print("Predicted : ", pred_net(test_input).detach().numpy())
-        print("Actual : ", actual) 
+        #print(test_input.shape)
+        actual = scaler.inverse_transform(data[0, -1 * predict_step:, :])[:, 3]
+        print("Predicted : ", scaler.inverse_transform(np.broadcast_to(pred_net(test_input).detach().numpy().reshape(-1, 1), (3, 15)))[:, 3])
+        print("Actual : ", actual)
+
+    torch.save(pred_net.state_dict(), "model_cache\predictor_" + ticker)
     
 
 

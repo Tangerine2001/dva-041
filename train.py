@@ -44,7 +44,7 @@ def train_model(ticker_dataset, ticker):
     #print(df.head())
 
     scaler = MinMaxScaler()
-    scaled_data = scaler.fit_transform(aug_data.add_sent_score())
+    scaled_data = scaler.fit_transform(aug_data.add_sent_score(ticker))
 
     num_feats = scaled_data.shape[1]
     #print(num_feats)
@@ -75,8 +75,8 @@ def train_model(ticker_dataset, ticker):
 
     if not gen_train:
         num_gan_epochs = 0
-        netD.load_state_dict(torch.load("model_cache\discriminator_" + ticker))
-        netG.load_state_dict(torch.load("model_cache\generator_" + ticker))
+        netD.load_state_dict(torch.load("model_cache/discriminator_" + ticker))
+        netG.load_state_dict(torch.load("model_cache/generator_" + ticker))
     
     criterion = nn.BCELoss()
     
@@ -167,8 +167,8 @@ def train_model(ticker_dataset, ticker):
     #    print("Actual : ", last.tolist()[0][3])
     #    print("Predicted : ", lastP.tolist()[0][3])
     if gen_train:
-        torch.save(netD.state_dict(), "model_cache\discriminator_" + ticker)
-        torch.save(netG.state_dict(), "model_cache\generator_" + ticker)
+        torch.save(netD.state_dict(), "model_cache/discriminator_" + ticker)
+        torch.save(netG.state_dict(), "model_cache/generator_" + ticker)
 
     if augmented_training:
         netG.eval()
@@ -220,7 +220,7 @@ def train_model(ticker_dataset, ticker):
         print("Predicted : ", scaler.inverse_transform(np.broadcast_to(pred_net(test_input).detach().numpy().reshape(-1, 1), (3, 15)))[:, 3])
         print("Actual : ", actual)
 
-    torch.save(pred_net.state_dict(), "model_cache\predictor_" + ticker)
+    torch.save(pred_net.state_dict(), "model_cache/predictor_" + ticker)
     
 
 

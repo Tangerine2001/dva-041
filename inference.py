@@ -36,7 +36,7 @@ class forecastor():
         df = aug.add_sent_score(ticker)
 
         #load predictor and scaler
-        with open('model_cache\scalerSENT_' + ticker + '.pkl', 'rb') as f:
+        with open('model_cache/scalerSENT_' + ticker + '.pkl', 'rb') as f:
             scaler = pickle.load(f)
         
         scaled_data = scaler.transform(df)
@@ -50,7 +50,7 @@ class forecastor():
 
 
         model = lstm_predictor(prediction_period - predict_step, num_feats, 15, 32, predict_step)
-        model.load_state_dict(torch.load("model_cache\predictorSENTAUG_" + ticker))
+        model.load_state_dict(torch.load("model_cache/predictorSENTAUG_" + ticker))
 
         forecast = scaler.inverse_transform(np.broadcast_to(model(input).detach().numpy().reshape(-1, 1), (3, num_feats)))[:, 3]
         print(forecast)

@@ -31,7 +31,7 @@ augmented_training = True
 gen_train = True
 sent_included = True
 
-verbose = False
+verbose = True
 
 num_gan_epochs = 350 if gen_train else 0
 num_pred_epochs = 150
@@ -52,8 +52,9 @@ def train_model(ticker_dataset, ticker):
     training_suffix = ""
     training_suffix += "SENT" if sent_included else ""
     training_suffix += "AUG" if sent_included else "REG"
-
+    
     aug_data = augment_stockdata(ticker_dataset)
+
     df = aug_data.add_ind()
     if sent_included:
         df = aug_data.add_sent_score(ticker)
@@ -250,7 +251,7 @@ def train_model(ticker_dataset, ticker):
     
 
 if __name__ == '__main__':
-    STOCK_NAMES = ["GOOGL", "AAPL", "MSFT", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
+    STOCK_NAMES = ["MSFT", "AAPL", "GOOGL", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
     for stock in STOCK_NAMES:
-        stock_data = get_data(STOCK_NAMES)
+        stock_data = get_data([stock])
         train_model(stock_data, stock)

@@ -3,11 +3,16 @@ import numpy as np
 from download_data import get_news_data
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from tqdm import tqdm
+import warnings
+warnings.filterwarnings("ignore")
 
 # Define the sentiment analysis model and the labels it'll use:
+
 model = AutoModelForSequenceClassification.from_pretrained('ProsusAI/finbert')
 tokenizer = AutoTokenizer.from_pretrained('ProsusAI/finbert')
 sentimentlabels = {0: 'neutral', 1: 'positive', 2: 'negative'}
+
+
 class augment_stockdata():
 
     def __init__(self, df : pd.DataFrame, closingInd = 3, openInd = 0):

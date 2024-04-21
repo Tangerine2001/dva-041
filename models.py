@@ -21,7 +21,7 @@ class cnn_discriminator(nn.Module):
             nn.LeakyReLU(inplace = True),
             nn.Conv1d(160, 1, kernel_size = 1, stride = self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Linear(13 if sent else 10, self.output_channels * 220, bias = False),
+            nn.Linear(13 if sent else 22, self.output_channels * 220, bias = False),
             nn.LeakyReLU(inplace = True),
             nn.Linear(self.output_channels * 220, self.output_channels * 220, bias = False),
             nn.ReLU(inplace = True),

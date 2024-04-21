@@ -1,15 +1,19 @@
 import torch
 from torch import nn, optim
-from models import cnn_discriminator, lstm_generator, lstm_predictor
+from torch.utils.data import random_split, DataLoader
+
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import yfinance as yf
-import matplotlib.pyplot as plt
+import pickle
 import datetime
-from augment_data import augment_stockdata 
+from augment_data import augment_stockdata
+from models import cnn_discriminator, lstm_generator, lstm_predictor
+from plotUtil import plotter
 
-prediction_period = 20   #num days input for generator
+prediction_period = 23   #num days input for generator
 predict_step = 3
+
 lr = .0002
 plr = .001
 beta1 = .5
@@ -18,12 +22,19 @@ batch_size = 5
 pred_batch_size = 15
 gen_hidden_size = 64
 pred_hidden_size = 80
+
 device = torch.device("cpu")
-num_gan_epochs = 300
-num_pred_epochs = 150
+
 num_generated_data = 200
+
 augmented_training = True
-gen_train = False
+gen_train = True
+sent_included = True
+
+verbose = False
+
+num_gan_epochs = 350 if gen_train else 0
+num_pred_epochs = 150
 
 def get_data(STOCK_NAMES):
     today_date = datetime.datetime.today()
@@ -31,7 +42,6 @@ def get_data(STOCK_NAMES):
     starting_date = today_date - delta
 
     start_data = str(starting_date).split()[0]
-    end_data = str(today_date).split()[0]
         
             
     stock_data = yf.download(STOCK_NAMES, start= start_data)
@@ -39,44 +49,44 @@ def get_data(STOCK_NAMES):
 
 def train_model(ticker_dataset, ticker):
 
+    training_suffix = ""
+    training_suffix += "SENT" if sent_included else ""
+    training_suffix += "AUG" if sent_included else "REG"
+
     aug_data = augment_stockdata(ticker_dataset)
     df = aug_data.add_ind()
+    if sent_included:
+        df = aug_data.add_sent_score(ticker)
     #print(df.head())
 
     scaler = MinMaxScaler()
-    scaled_data = scaler.fit_transform(aug_data.add_sent_score())
+    scaled_data = scaler.fit_transform(df)
 
     num_feats = scaled_data.shape[1]
     #print(num_feats)
     
-    training_length = int(len(scaled_data) * .9)
-    training_data = scaled_data[:training_length, :]
-    testing_data = scaled_data[training_length :, :]
+    windowed_data = []
+    for i in range(len(scaled_data) - prediction_period):
+        windowed_data.append(scaled_data[i : i + prediction_period, :])
 
-    x_train = []
-    for i in range(training_length - prediction_period):
-        x_train.append(training_data[i : i + prediction_period, :])
-    x_test = []
-    for j in range(len(testing_data) - prediction_period):
-        x_test.append(testing_data[j : j + prediction_period, :])
-    x_train, x_test = np.array(x_train), np.array(x_test)
+    dataset = np.array(windowed_data)
+    x_train, x_test = random_split(dataset, [0.9, 0.1])
     
-    print(x_train.shape, len(x_train))
-    print(x_test.shape, len(x_test))
+    #print(x_train.shape, len(x_train))
+    #print(x_test.shape, len(x_test))
     
-    dataloaderTrain = torch.utils.data.DataLoader(x_train, batch_size = batch_size, shuffle = True, num_workers = workers)
-    dataloaderTest = torch.utils.data.DataLoader(x_test, num_workers = workers)
+    dataloaderTrain = DataLoader(x_train, batch_size = batch_size, shuffle = True, num_workers = workers)
+    dataloaderTest = DataLoader(x_test, num_workers = workers)
     
-    netD = cnn_discriminator(prediction_period, 1, 2, 1)
+    netD = cnn_discriminator(prediction_period, 1, 2, 1, sent = sent_included)
     netG = lstm_generator(num_feats, batch_size, hidden_size = 32, output_size =  num_feats)
 
     netD.to(device)
     netG.to(device)
 
     if not gen_train:
-        num_gan_epochs = 0
-        netD.load_state_dict(torch.load("model_cache\discriminator_" + ticker))
-        netG.load_state_dict(torch.load("model_cache\generator_" + ticker))
+        netD.load_state_dict(torch.load("model_cache\discriminator" + training_suffix + "_" + ticker))
+        netG.load_state_dict(torch.load("model_cache\generator" + training_suffix + "_" + ticker))
     
     criterion = nn.BCELoss()
     
@@ -159,16 +169,14 @@ def train_model(ticker_dataset, ticker):
             # Save Losses for plotting later
             gen_losses.append(errG.item())
             disc_losses.append(errD.item())
-
-    #for i, data in enumerate(dataloaderTest, 0):
-    #    print(data.shape)
-    #    last = data.permute(1, 0, 3, 2)[0].to(device)[:, :, -1 * predict_step :]
-    #    lastP = netG(data.permute(1, 0, 3, 2)[0].to(device)[:, :, : -1 * predict_step])
-    #    print("Actual : ", last.tolist()[0][3])
-    #    print("Predicted : ", lastP.tolist()[0][3])
     if gen_train:
-        torch.save(netD.state_dict(), "model_cache\discriminator_" + ticker)
-        torch.save(netG.state_dict(), "model_cache\generator_" + ticker)
+        glossplot = plotter("Generator losses for " + ticker, "loss", "Epoch", "BCE Loss", gen_losses)
+        glossplot.get_plot(verbose= verbose)
+        dlossplot = plotter("Discriminator losses for " + ticker, "loss", "Epoch", "BCE Loss", disc_losses)
+        dlossplot.get_plot(verbose= verbose)
+
+        torch.save(netD.state_dict(), "model_cache\discriminator" + training_suffix + "_" + ticker)
+        torch.save(netG.state_dict(), "model_cache\generator" + training_suffix + "_" + ticker)
 
     if augmented_training:
         netG.eval()
@@ -187,7 +195,7 @@ def train_model(ticker_dataset, ticker):
     else:
         aug_x_train = x_train
 
-    aug_dataLoader = torch.utils.data.DataLoader(aug_x_train, batch_size = batch_size, shuffle = True, num_workers = workers)
+    aug_dataLoader = DataLoader(aug_x_train, batch_size = pred_batch_size, shuffle = True, num_workers = workers)
     
 
     pred_net = lstm_predictor(prediction_period - predict_step, num_feats, pred_batch_size, 32, predict_step)
@@ -196,6 +204,8 @@ def train_model(ticker_dataset, ticker):
     pred_net.to(device)
 
     pred_optim = torch.optim.Adam(pred_net.parameters(), lr = plr)
+
+    pred_losses = []
 
     for epoch in range(num_pred_epochs):
         for i, data in enumerate(aug_dataLoader, 0):
@@ -211,22 +221,36 @@ def train_model(ticker_dataset, ticker):
                     print('[%d/%d][%d/%d]\tLoss: %.4f\t'
                         % (epoch, num_pred_epochs, i, len(aug_dataLoader),
                             errP.item()))
-    pred_net.eval()            
+            pred_losses.append(errP.item())
+    plossplot = plotter("Predictor losses for " + ticker, "loss", "Epoch", "MSE Loss", pred_losses)
+    plossplot.get_plot(verbose= verbose)
+    pred_net.eval()
+    numPlots = 3
+    numCreated = 0
     for i, data in enumerate(dataloaderTest, 0):
         #print(data.shape)
         test_input = data[:, : -1 * predict_step, :]
         #print(test_input.shape)
-        actual = scaler.inverse_transform(data[0, -1 * predict_step:, :])[:, 3]
-        print("Predicted : ", scaler.inverse_transform(np.broadcast_to(pred_net(test_input).detach().numpy().reshape(-1, 1), (3, 15)))[:, 3])
-        print("Actual : ", actual)
+        actual = scaler.inverse_transform(data[0, :, :])[:, 3]
+        actualInput = actual[: -1 * predict_step]
+        actualOut = actual[ -1 * predict_step:]
+        predicted = scaler.inverse_transform(np.broadcast_to(pred_net(test_input).detach().numpy().reshape(-1, 1), (3, num_feats)))[:, 3]
+        print("Predicted : ", predicted)
+        print("Actual : ", actualOut)
+        if numCreated < numPlots:
+            plot = plotter("Predictor Forecasting " + ticker + " Price " + str(numCreated + 1), "Actual Input", "Day", "Price", actualInput, range(prediction_period)[: -1 * predict_step])
+            plot.add_predicted("Actual Price", "green", actualOut, range(prediction_period)[-1 * predict_step :])
+            plot.add_predicted("Predicted Price", "red", predicted, range(prediction_period)[-1 * predict_step :])
+            plot.get_plot(verbose= verbose)
+            numCreated += 1
 
-    torch.save(pred_net.state_dict(), "model_cache\predictor_" + ticker)
+    torch.save(pred_net.state_dict(), "model_cache\predictor" + training_suffix + "_" + ticker)
+    with open('model_cache\scalerSENT_' + ticker + '.pkl' if sent_included else 'model_cache\scaler_' + ticker + '.pkl', 'wb') as f:
+        pickle.dump(scaler, f)
     
 
-
-
 if __name__ == '__main__':
-    STOCK_NAMES = ["GOOG"]
+    STOCK_NAMES = ["GOOGL", "AAPL", "MSFT", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
     for stock in STOCK_NAMES:
         stock_data = get_data(STOCK_NAMES)
         train_model(stock_data, stock)

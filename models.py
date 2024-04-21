@@ -4,24 +4,24 @@ from torch import nn
 
 class cnn_discriminator(nn.Module):
     
-    def __init__(self, input_channels, output_channels, kernel_size, stride):
+    def __init__(self, input_channels, output_channels, kernel_size, stride, sent = True):
         super(cnn_discriminator, self).__init__()
         self.input_channels = input_channels
         self.output_channels = output_channels
         self.kernel_size = kernel_size
         self.stride = stride
         self.main = nn.Sequential(
-            nn.Conv1d(self.input_channels, 15, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(self.input_channels, 20, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(15, 30, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(20, 40, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(30, 60, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(40, 80, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(60, 120, self.kernel_size, self.stride, padding_mode = "reflect"),
+            nn.Conv1d(80, 160, self.kernel_size, self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Conv1d(120, 1, kernel_size = 1, stride = self.stride, padding_mode = "reflect"),
+            nn.Conv1d(160, 1, kernel_size = 1, stride = self.stride, padding_mode = "reflect"),
             nn.LeakyReLU(inplace = True),
-            nn.Linear(11, self.output_channels * 220, bias = False),
+            nn.Linear(13 if sent else 10, self.output_channels * 220, bias = False),
             nn.LeakyReLU(inplace = True),
             nn.Linear(self.output_channels * 220, self.output_channels * 220, bias = False),
             nn.ReLU(inplace = True),

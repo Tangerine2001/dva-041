@@ -63,12 +63,22 @@ class forecastor():
                     self.forecast_dict[input_days[day_ind]] = {ticker : input_prices[day_ind]}
                 else:
                     self.forecast_dict[input_days[day_ind]] = {ticker : forecast[day_ind - (prediction_period - predict_step)]}
+                if day_ind == 0:
+                    self.forecast_dict[input_days[day_ind]][ticker + "_perc_change"] = 0.0
+                else:
+                    prev = self.forecast_dict[input_days[day_ind - 1]][ticker]
+                    self.forecast_dict[input_days[day_ind]][ticker + "_perc_change"] = (self.forecast_dict[input_days[day_ind]][ticker] - prev) / prev
         else:
             for day_ind in range(len(input_days)):
                 if day_ind < prediction_period - predict_step:
                     self.forecast_dict[input_days[day_ind]][ticker] = input_prices[day_ind]
                 else:
                     self.forecast_dict[input_days[day_ind]][ticker] = forecast[day_ind - (prediction_period - predict_step)]
+                if day_ind == 0:
+                    self.forecast_dict[input_days[day_ind]][ticker + "_perc_change"] = 0.0
+                else:
+                    prev = self.forecast_dict[input_days[day_ind - 1]][ticker]
+                    self.forecast_dict[input_days[day_ind]][ticker + "_perc_change"] = (self.forecast_dict[input_days[day_ind]][ticker] - prev) / prev
         #plot forecast
         plot = plotUtil.plotter("Price Forecasts for " + ticker, "Input Prices", "Date", "Price", input_prices, input_days[:-1 * predict_step])
         plot.add_predicted("Predicted Price", "orange", forecast, input_days[-1 * predict_step :])
@@ -79,12 +89,14 @@ class forecastor():
         with open(self.outfile, 'w', newline='') as f:
             fieldnames = ["Date"]
             fieldnames.extend(self.tickers)
+            fieldnames.extend([ticker + "_perc_change" for ticker in self.tickers])
             writer = csv.DictWriter(f, fieldnames= fieldnames)
             writer.writeheader()
             for day in self.forecast_dict.keys():
                 row = {'Date' : day}
                 for ticker in self.tickers:
                     row[ticker] = self.forecast_dict[day][ticker]
+                    row[ticker + "_perc_change"] = self.forecast_dict[day][ticker + "_perc_change"]
                 writer.writerow(row)
         f.close()
 
@@ -95,8 +107,8 @@ class forecastor():
 
 
 #change this to generate forecasts for more stocks
-STOCK_LIST = ["GOOGL", "AAPL", "MSFT"]
+STOCK_LIST = ["GOOGL", "AAPL", "MSFT", "AMZN", "JPM"]
 
 
 f = forecastor(STOCK_LIST)
-f.gen_csv(show_plots = False)
+f.gen_csv(show_plots = True)

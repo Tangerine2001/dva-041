@@ -6,15 +6,17 @@ import augment_data
 from models import lstm_predictor
 import numpy as np
 import plotUtil
+import csv
 
 prediction_period = 23
 predict_step = 3
 
 class forecastor():
 
-    def __init__(self, tickers, out, today = True, start_date = None):
+    def __init__(self, tickers, out = "forecasts.csv", today = True, start_date = None):
         self.tickers = tickers
         self.outfile= out
+        self.forecast_dict = {}
 
     def inference(self, ticker):
         #get data
@@ -55,11 +57,35 @@ class forecastor():
         forecast = scaler.inverse_transform(np.broadcast_to(model(input).detach().numpy().reshape(-1, 1), (3, num_feats)))[:, 3]
         print(forecast)
         #save forecast in csv
+        if len(self.forecast_dict.keys()) == 0:
+            for day_ind in range(len(input_days)):
+                if day_ind < prediction_period - predict_step:
+                    self.forecast_dict[input_days[day_ind]] = {ticker : input_prices[day_ind]}
+                else:
+                    self.forecast_dict[input_days[day_ind]] = {ticker : forecast[day_ind - (prediction_period - predict_step)]}
+        else:
+            for day_ind in range(len(input_days)):
+                if day_ind < prediction_period - predict_step:
+                    self.forecast_dict[input_days[day_ind]][ticker] = input_prices[day_ind]
+                else:
+                    self.forecast_dict[input_days[day_ind]][ticker] = forecast[day_ind - (prediction_period - predict_step)]
         #plot forecast
         plot = plotUtil.plotter("Price Forecasts for " + ticker, "Input Prices", "Date", "Price", input_prices, input_days[:-1 * predict_step])
         plot.add_predicted("Predicted Price", "orange", forecast, input_days[-1 * predict_step :])
         plot.get_plot(verbose= True)
-        return None
+
+    def save_csv(self):
+        with open(self.outfile, 'w') as f:
+            fieldnames = ["Date"].extend(self.tickers)
+            writer = csv.DictWriter(f, fieldnames= fieldnames)
+            writer.writeheader
+            for day in self.forecast_dict.keys():
+                row = {'Date' : day}
+                for ticker in self.tickers:
+                    row[ticker] = self.forecast_dict[day][ticker]
+                writer.writerow(row)
+        f.close()
+
     
 f = forecastor(["GOOG"], None)
 f.inference("GOOG")

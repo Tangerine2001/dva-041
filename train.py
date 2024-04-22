@@ -171,9 +171,9 @@ def train_model(ticker_dataset, ticker):
             gen_losses.append(errG.item())
             disc_losses.append(errD.item())
     if gen_train:
-        glossplot = plotter("Generator losses for " + ticker, "loss", "Epoch", "BCE Loss", gen_losses)
+        glossplot = plotter("Generator losses for " + ticker, "loss", "Iteration", "BCE Loss", gen_losses)
         glossplot.get_plot(verbose= verbose)
-        dlossplot = plotter("Discriminator losses for " + ticker, "loss", "Epoch", "BCE Loss", disc_losses)
+        dlossplot = plotter("Discriminator losses for " + ticker, "loss", "Iteration", "BCE Loss", disc_losses)
         dlossplot.get_plot(verbose= verbose)
 
         torch.save(netD.state_dict(), "model_cache\discriminator" + training_suffix + "_" + ticker)
@@ -223,7 +223,7 @@ def train_model(ticker_dataset, ticker):
                         % (epoch, num_pred_epochs, i, len(aug_dataLoader),
                             errP.item()))
             pred_losses.append(errP.item())
-    plossplot = plotter("Predictor losses for " + ticker, "loss", "Epoch", "MSE Loss", pred_losses)
+    plossplot = plotter("Predictor losses for " + ticker, "loss", "Iteration", "MSE Loss", pred_losses)
     plossplot.get_plot(verbose= verbose)
     pred_net.eval()
     numPlots = 3
@@ -240,8 +240,8 @@ def train_model(ticker_dataset, ticker):
         print("Actual : ", actualOut)
         if numCreated < numPlots:
             plot = plotter("Predictor Forecasting " + ticker + " Price " + str(numCreated + 1), "Actual Input", "Day", "Price", actualInput, range(prediction_period)[: -1 * predict_step])
-            plot.add_predicted("Actual Price", "green", actualOut, range(prediction_period)[-1 * predict_step :])
-            plot.add_predicted("Predicted Price", "red", predicted, range(prediction_period)[-1 * predict_step :])
+            plot.add_predicted("Actual Price", "blue", actualOut, range(prediction_period)[-1 * predict_step :])
+            plot.add_predicted("Predicted Price", "orange", predicted, range(prediction_period)[-1 * predict_step :])
             plot.get_plot(verbose= verbose)
             numCreated += 1
 
@@ -251,7 +251,7 @@ def train_model(ticker_dataset, ticker):
     
 
 if __name__ == '__main__':
-    STOCK_NAMES = ["MSFT", "AAPL", "GOOGL", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
+    STOCK_NAMES = ["AAPL", "GOOGL", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
     for stock in STOCK_NAMES:
         stock_data = get_data([stock])
         train_model(stock_data, stock)

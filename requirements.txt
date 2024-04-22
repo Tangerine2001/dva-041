@@ -1,0 +1,11 @@
+matplotlib
+numpy
+pandas
+transformers
+tqdm
+yfinance
+torch
+reuters
+flask
+datetime
+plotly

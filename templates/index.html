@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Visualization</title>
+
+    <style>
+        head {
+            font-family: Trebuchet MS;
+            padding: 20px;
+        }
+
+        body {
+            display: grid;
+            background-color: #d3d3d3;
+            color: #000000;
+            font-family: Trebuchet MS;
+            padding:10px;
+        }
+
+        h1 {
+            grid-column: 1 / -1;
+            background-color: #A9A9A9;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 20% 80%; /* fraction*/
+        }
+    </style>
+
+    <h1>Stock Price Prediction Tool</h1>
+</head>
+
+<body>
+    <h2> Stock Prices Over Time</h2>
+    <div class="container">
+        <div>
+            <h3>Stock Selection</h3>
+            <form action="/plot" method="post">
+                <ul>
+                    <li><label><input type="checkbox" id="select-all"> Select All</label><br></li>
+                    <li><label><input type="checkbox" name="sector" value="Technology" onchange="toggleSubItems(this)"> Technology</label></li>
+                    <ul>
+                        <li><label for="AAPL"><input type="checkbox" name="stocks" value="AAPL" class="Technology" id="AAPL">AAPL</label></li>
+                        <li><label for="GOOGL"><input type="checkbox" name="stocks" value="GOOGL" class="Technology" id="GOOGL">GOOGL</label></li>
+                        <li><label for="MSFT"><input type="checkbox" name="stocks" value="MSFT" class="Technology" id="MSFT">MSFT</label></li>
+                        <li><label for="AMZN"><input type="checkbox" name="stocks" value="AMZN" class="Technology" id="AMZN">AMZN</label></li>
+                    </ul>
+                    <li><label><input type="checkbox" name="sector" value="Finance" onchange="toggleSubItems(this)"> Finance</label></li>
+                    <ul>
+                        <li><label for="JPM"><input type="checkbox" name="stocks" value="JPM" class="Finance" id="JPM">JPM</label></li>
+                    </ul>
+                    <!-- <li><label><input type="checkbox" name="sector" value="Consumer" onchange="toggleSubItems(this)"> Consumer Goods</label></li>
+                    <ul>
+                        <li><label for="KO"><input type="checkbox" name="stocks" value="KO" class="Consumer" id="KO">KO</label></li>
+                        <li><label for="PEP"><input type="checkbox" name="stocks" value="PEP" class="Consumer" id="PEP">PEP</label></li>
+                    </ul>
+                    <li><label><input type="checkbox" name="sector" value="Energy" onchange="toggleSubItems(this)"> Energy</label></li>
+                    <ul>
+                        <li><label for="XOM"><input type="checkbox" name="stocks" value="XOM" class="Energy" id="XOM">XOM</label></li>
+                        <li><label for="CVX"><input type="checkbox" name="stocks" value="CVX" class="Energy" id="CVX">CVX</label></li>
+                    </ul> -->
+                </ul>
+                <input type="submit" value="Generate Plot">
+
+            <h3>Historical Data</h3>
+            <ul>
+                <li><label for="prev_week"><input type="radio" class="historical" name="historical" value="prev_week"> Previous Week</label></li>
+                <li><label for="prev_month"><input type="radio" class="historical" name="historical" value="prev_month"> Previous Month</label></li>
+                <li><label for="prev_year"><input type="radio" class="historical" name="historical" value="prev_year"> Previous Year</label></li>
+                <li><label for="all"><input type="radio" class="historical" name="historical" value="all"> All Time</label></li>
+            </ul>
+            </form>
+
+            <h3>Prediction Data</h3>
+            <ul>
+                <li><label><input type="radio" name="prediction" value="next_week"> Next Week</label></li>
+                <li><label><input type="radio" name="prediction" value="next_month"> Next Month</label></li>
+                <li><label><input type="radio" name="prediction" value="next_year"> Next Year</label></li>
+            </ul>
+        </div>
+    </form>
+    </div>
+
+    <script>
+        document.getElementById('select-all').addEventListener('change', function() {
+            var checkboxes = document.querySelectorAll('input[name="stocks"]');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = this.checked;
+            }.bind(this));
+        });
+    </script>
+
+    <script>
+        function toggleSubItems(checkbox) {
+            var sector = checkbox.value;
+            var subItems = document.getElementsByClassName(sector);
+            for (var i = 0; i < subItems.length; i++) {
+                subItems[i].checked = checkbox.checked;
+            }
+        }
+    </script>
+
+</body>
+</html>

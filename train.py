@@ -33,8 +33,8 @@ sent_included = True
 
 verbose = True
 
-num_gan_epochs = 350 if gen_train else 0
-num_pred_epochs = 150
+num_gan_epochs = 100 if gen_train else 0
+num_pred_epochs = 30
 
 def get_data(STOCK_NAMES):
     today_date = datetime.datetime.today()
@@ -251,7 +251,7 @@ def train_model(ticker_dataset, ticker):
     
 
 if __name__ == '__main__':
-    STOCK_NAMES = ["GOOGL", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
+    STOCK_NAMES = ["AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
     for stock in STOCK_NAMES:
         stock_data = get_data([stock])
         train_model(stock_data, stock)

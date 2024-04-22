@@ -223,7 +223,7 @@ def train_model(ticker_dataset, ticker):
                         % (epoch, num_pred_epochs, i, len(aug_dataLoader),
                             errP.item()))
             pred_losses.append(errP.item())
-    plossplot = plotter("Predictor losses for " + ticker, "loss", "Iteration", "MSE Loss", pred_losses)
+    plossplot = plotter("Predictor losses for " + ticker, "loss", "Iteration", "MSE Loss", pred_losses, log = True)
     plossplot.get_plot(verbose= verbose)
     pred_net.eval()
     numPlots = 3
@@ -251,7 +251,7 @@ def train_model(ticker_dataset, ticker):
     
 
 if __name__ == '__main__':
-    STOCK_NAMES = ["AAPL", "GOOGL", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
+    STOCK_NAMES = ["GOOGL", "AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
     for stock in STOCK_NAMES:
         stock_data = get_data([stock])
         train_model(stock_data, stock)

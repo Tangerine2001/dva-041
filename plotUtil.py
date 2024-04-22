@@ -5,7 +5,7 @@ import pandas as pd
 
 class plotter():
 
-    def __init__(self, title, label, xlabel, ylabel, y, X = None):
+    def __init__(self, title, label, xlabel, ylabel, y, X = None, log = False):
         self.fig, self.ax = plt.subplots()
         self.y = y
         if X == None:
@@ -19,6 +19,8 @@ class plotter():
         self.ax.set_title(title)
         self.ax.legend()
         self.ax.xaxis.set_major_locator(ticker.AutoLocator())
+        if log:
+            self.ax.set_yscale("log")
     
     def add_predicted(self, label, color, yPredicted, X = None, linestyle = ':'):
         if X == None:

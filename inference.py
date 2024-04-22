@@ -18,7 +18,7 @@ class forecastor():
         self.outfile= out
         self.forecast_dict = {}
 
-    def inference(self, ticker):
+    def inference(self, ticker, show_plots = False):
         #get data
         today_date = datetime.datetime.today()
 
@@ -72,13 +72,15 @@ class forecastor():
         #plot forecast
         plot = plotUtil.plotter("Price Forecasts for " + ticker, "Input Prices", "Date", "Price", input_prices, input_days[:-1 * predict_step])
         plot.add_predicted("Predicted Price", "orange", forecast, input_days[-1 * predict_step :])
-        plot.get_plot(verbose= True)
+        if show_plots:
+            plot.get_plot(verbose= True)
 
     def save_csv(self):
-        with open(self.outfile, 'w') as f:
-            fieldnames = ["Date"].extend(self.tickers)
+        with open(self.outfile, 'w', newline='') as f:
+            fieldnames = ["Date"]
+            fieldnames.extend(self.tickers)
             writer = csv.DictWriter(f, fieldnames= fieldnames)
-            writer.writeheader
+            writer.writeheader()
             for day in self.forecast_dict.keys():
                 row = {'Date' : day}
                 for ticker in self.tickers:
@@ -86,6 +88,15 @@ class forecastor():
                 writer.writerow(row)
         f.close()
 
-    
-f = forecastor(["GOOG"], None)
-f.inference("GOOG")
+    def gen_csv(self, show_plots):
+        for stock in self.tickers:
+            self.inference(stock, show_plots = show_plots)
+        self.save_csv()
+
+
+#change this to generate forecasts for more stocks
+STOCK_LIST = ["GOOGL", "AAPL", "MSFT"]
+
+
+f = forecastor(STOCK_LIST)
+f.gen_csv(show_plots = False)

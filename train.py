@@ -239,7 +239,7 @@ def train_model(ticker_dataset, ticker):
     for i, data in enumerate(dataloaderTest, 0):
         #print(data.shape)
         test_input = data[:, : -1 * predict_step, :]
-        scaled_out = data[0, -1 * predict_step :, 3]
+        scaled_out = data[0, -1 * predict_step :, 3].tolist()
         #print(test_input.shape)
         actual = scaler.inverse_transform(data[0, :, :])[:, 3]
         actualInput = actual[: -1 * predict_step]
@@ -262,17 +262,17 @@ def train_model(ticker_dataset, ticker):
             plot.get_plot(verbose= verbose)
             numCreated += 1
 
-        for j in range(3):
-            scaled_mse[j] = scaled_mse[j] / (i + 1)
-            unscaled_mse[j] = unscaled_mse[j] / (i + 1)
+    for j in range(3):
+        scaled_mse[j] = scaled_mse[j] / (i + 1)
+        unscaled_mse[j] = unscaled_mse[j] / (i + 1)
 
-        mean_scaled_mse = np.mean(scaled_mse)
-        mean_unscaled_mse = np.mean(unscaled_mse)
+    mean_scaled_mse = np.mean(scaled_mse)
+    mean_unscaled_mse = np.mean(unscaled_mse)
 
-        print("Scaled MSE for " + ticker + " by day: ", scaled_mse)
-        print("Total Scaled MSE for " + ticker + ": ", mean_scaled_mse)
-        print("Unscaled MSE for " + ticker + " by day: ", unscaled_mse)
-        print("Total Unscaled MSE for " + ticker + ": ", mean_unscaled_mse)
+    print("Scaled MSE for " + ticker + " by day: ", scaled_mse)
+    print("Total Scaled MSE for " + ticker + ": ", mean_scaled_mse)
+    print("Unscaled MSE for " + ticker + " by day: ", unscaled_mse)
+    print("Total Unscaled MSE for " + ticker + ": ", mean_unscaled_mse)
             
 
     torch.save(pred_net.state_dict(), "model_cache\predictor" + training_suffix + "_" + ticker)

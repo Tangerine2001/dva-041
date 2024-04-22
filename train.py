@@ -30,11 +30,12 @@ num_generated_data = 200
 augmented_training = True
 gen_train = True
 sent_included = True
+test_only = False
 
 verbose = True
 
 num_gan_epochs = 100 if gen_train else 0
-num_pred_epochs = 30
+num_pred_epochs = 30 if not test_only else 0
 
 def get_data(STOCK_NAMES):
     today_date = datetime.datetime.today()
@@ -170,7 +171,7 @@ def train_model(ticker_dataset, ticker):
             # Save Losses for plotting later
             gen_losses.append(errG.item())
             disc_losses.append(errD.item())
-    if gen_train:
+    if gen_train and not test_only:
         glossplot = plotter("Generator losses for " + ticker, "loss", "Iteration", "BCE Loss", gen_losses)
         glossplot.get_plot(verbose= verbose)
         dlossplot = plotter("Discriminator losses for " + ticker, "loss", "Iteration", "BCE Loss", disc_losses)
@@ -179,7 +180,7 @@ def train_model(ticker_dataset, ticker):
         torch.save(netD.state_dict(), "model_cache\discriminator" + training_suffix + "_" + ticker)
         torch.save(netG.state_dict(), "model_cache\generator" + training_suffix + "_" + ticker)
 
-    if augmented_training:
+    if augmented_training and not test_only:
         netG.eval()
         aug_data = None
         started = False
@@ -200,6 +201,8 @@ def train_model(ticker_dataset, ticker):
     
 
     pred_net = lstm_predictor(prediction_period - predict_step, num_feats, pred_batch_size, 32, predict_step)
+    if test_only:
+        pred_net.load_state_dict(torch.load("model_cache\predictor" + training_suffix + "_" + ticker))
     reg_loss = nn.MSELoss()
 
     pred_net.to(device)
@@ -223,19 +226,33 @@ def train_model(ticker_dataset, ticker):
                         % (epoch, num_pred_epochs, i, len(aug_dataLoader),
                             errP.item()))
             pred_losses.append(errP.item())
-    plossplot = plotter("Predictor losses for " + ticker, "loss", "Iteration", "MSE Loss", pred_losses, log = True)
-    plossplot.get_plot(verbose= verbose)
+    
+    if not test_only:
+        plossplot = plotter("Predictor losses for " + ticker, "loss", "Iteration", "MSE Loss", pred_losses, log = True)
+        plossplot.get_plot(verbose= verbose)
+
     pred_net.eval()
     numPlots = 3
     numCreated = 0
+    scaled_mse = (0, 0, 0)
+    unscaled_mse = (0, 0, 0)
     for i, data in enumerate(dataloaderTest, 0):
         #print(data.shape)
         test_input = data[:, : -1 * predict_step, :]
+        scaled_out = data[0, -1 * predict_step :, 3]
         #print(test_input.shape)
         actual = scaler.inverse_transform(data[0, :, :])[:, 3]
         actualInput = actual[: -1 * predict_step]
         actualOut = actual[ -1 * predict_step:]
-        predicted = scaler.inverse_transform(np.broadcast_to(pred_net(test_input).detach().numpy().reshape(-1, 1), (3, num_feats)))[:, 3]
+
+        scaledPred = pred_net(test_input).detach().numpy().reshape(-1, 1)
+
+        predicted = scaler.inverse_transform(np.broadcast_to(scaledPred, (3, num_feats)))[:, 3]
+
+        for j in range(3):
+            scaled_mse[j] += np.square(scaled_out[j] - scaledPred[j, 0])
+            unscaled_mse[j] += np.square(actualOut[j] - predicted[j])
+
         print("Predicted : ", predicted)
         print("Actual : ", actualOut)
         if numCreated < numPlots:
@@ -245,13 +262,26 @@ def train_model(ticker_dataset, ticker):
             plot.get_plot(verbose= verbose)
             numCreated += 1
 
+        for j in range(3):
+            scaled_mse[j] = scaled_mse[j] / (i + 1)
+            unscaled_mse[j] = unscaled_mse[j] / (i + 1)
+
+        mean_scaled_mse = np.mean(scaled_mse)
+        mean_unscaled_mse = np.mean(unscaled_mse)
+
+        print("Scaled MSE for " + ticker + " by day: ", scaled_mse)
+        print("Total Scaled MSE for " + ticker + ": ", mean_scaled_mse)
+        print("Unscaled MSE for " + ticker + " by day: ", unscaled_mse)
+        print("Total Unscaled MSE for " + ticker + ": ", mean_unscaled_mse)
+            
+
     torch.save(pred_net.state_dict(), "model_cache\predictor" + training_suffix + "_" + ticker)
     with open('model_cache\scalerSENT_' + ticker + '.pkl' if sent_included else 'model_cache\scaler_' + ticker + '.pkl', 'wb') as f:
         pickle.dump(scaler, f)
     
 
 if __name__ == '__main__':
-    STOCK_NAMES = ["AMZN", "JNJ", "KO", "XOM", "IBM", "PFE", "PEP", "CVX"]
+    STOCK_NAMES = ["META", "TSLA", "QCOM", "IBM", "LYFT", "ADBE", "VZ", "BAC", "C", "NVDA", "WFC", "NFLX", "MS", "GS", "UBER", "T"]
     for stock in STOCK_NAMES:
         stock_data = get_data([stock])
         train_model(stock_data, stock)

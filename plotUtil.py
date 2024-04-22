@@ -36,5 +36,3 @@ class plotter():
     def get_plot(self, verbose = False):
         if verbose:
             plt.show()
-        else:
-            self.fig.show()

@@ -107,8 +107,8 @@ class forecastor():
 
 
 #change this to generate forecasts for more stocks
-STOCK_LIST = ["GOOGL", "AAPL", "MSFT", "AMZN", "JPM"]
+STOCK_LIST = ["AAPL", "ADBE", "AMZN", "BAC", "C", "GOOGL", "GS", "IBM", "JPM", "LYFT", "META", "MS", "MSFT", "NFLX", "NVDA", "QCOM", "T", "TSLA", "UBER", "VZ", "WFC"]
 
 
 f = forecastor(STOCK_LIST)
-f.gen_csv(show_plots = True)
+f.gen_csv(show_plots = False)

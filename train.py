@@ -32,7 +32,7 @@ gen_train = True
 sent_included = True
 test_only = False
 
-verbose = True
+verbose = False
 
 num_gan_epochs = 100 if gen_train else 0
 num_pred_epochs = 30 if not test_only else 0
@@ -234,8 +234,8 @@ def train_model(ticker_dataset, ticker):
     pred_net.eval()
     numPlots = 3
     numCreated = 0
-    scaled_mse = (0, 0, 0)
-    unscaled_mse = (0, 0, 0)
+    scaled_mse = [0, 0, 0]
+    unscaled_mse = [0, 0, 0]
     for i, data in enumerate(dataloaderTest, 0):
         #print(data.shape)
         test_input = data[:, : -1 * predict_step, :]
@@ -281,7 +281,7 @@ def train_model(ticker_dataset, ticker):
     
 
 if __name__ == '__main__':
-    STOCK_NAMES = ["META", "TSLA", "QCOM", "IBM", "LYFT", "ADBE", "VZ", "BAC", "C", "NVDA", "WFC", "NFLX", "MS", "GS", "UBER", "T"]
+    STOCK_NAMES = ["UBER", "T"]
     for stock in STOCK_NAMES:
         stock_data = get_data([stock])
         train_model(stock_data, stock)
